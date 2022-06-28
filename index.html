@@ -28,7 +28,7 @@
 		<script type="importmap">
 			{
 				"imports": {
-					"three": "../build/three.module.js"
+					"three": "./build/three.module.js"
 				}
 			}
 		</script>
@@ -274,7 +274,7 @@
 				document.addEventListener("keydown", onKeyDown, false);
 
 				function getRand() {
-					return Math.random() * 2;
+					return Math.random() * 5;
 				}
 
 				document.addEventListener("keypress", getRand);
