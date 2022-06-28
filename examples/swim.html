@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Swimming with me</title>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+		/>
+		<link type="text/css" rel="stylesheet" href="main.css" />
+	</head>
+
+	<body>
+		<div id="info">
+			<p>Instructions:<br/>
+				Tab left and right arrows to move. Press spacebar to reset position.<br/>
+				Click and hold to drag and rotate scene.<br/>
+			</p>
+		</div>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script
+			async
+			src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+		></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js"
+				}
+			}
+		</script>
+
+		<script type="module">
+			import * as THREE from "three";
+
+			import Stats from "./jsm/libs/stats.module.js";
+
+			import { GUI } from './jsm/libs/lil-gui.module.min.js';
+			import { OrbitControls } from "./jsm/controls/OrbitControls.js";
+			import { FBXLoader } from "./jsm/loaders/FBXLoader.js";
+			import { Water } from './jsm/objects/Water.js';
+			import { Sky } from './jsm/objects/Sky.js';
+
+			let container, stats; 
+			let camera, scene, renderer;
+			let controls, water, sun, mesh;
+
+			const clock = new THREE.Clock();
+
+			let mixer;
+			let mixer2;
+			let mixer3;
+			const mixers = [];
+
+			init();
+			animate();
+
+			var xSpeed = 5;
+			var ySpeed = 5;
+
+			function init() {
+				container = document.createElement("div");
+				container.id = "canvas";
+				document.body.appendChild(container);
+
+				renderer = new THREE.WebGLRenderer({ antialias: true });
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.shadowMap.enabled = true;
+				container.appendChild(renderer.domElement);
+
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 30, 100, 260 );
+				//
+
+				sun = new THREE.Vector3();
+
+				// Character lighting
+
+				const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+				hemiLight.position.set(0, 200, 0);
+				scene.add(hemiLight);
+
+				const dirLight = new THREE.DirectionalLight(0xffffff);
+				dirLight.position.set(0, 200, 100);
+				dirLight.castShadow = true;
+				dirLight.shadow.camera.top = 180;
+				dirLight.shadow.camera.bottom = -100;
+				dirLight.shadow.camera.left = -120;
+				dirLight.shadow.camera.right = 120;
+				scene.add(dirLight);
+
+				let positionX;
+				let positionX2;
+				let positionX3;
+
+				// models
+				
+				const loader = new FBXLoader();
+
+				loader.load("models/fbx/swim1.fbx", function (object) {
+					mixer = new THREE.AnimationMixer(object);
+
+					const action = mixer.clipAction(object.animations[0]);
+					action.play();
+
+					object.traverse(function (child) {
+						if (child.isMesh) {
+
+							child.castShadow = true;
+							child.receiveShadow = true;
+						}
+					});
+
+					scene.add(object);
+					object.position.y = -25
+					positionX = object.position;
+					mixers.push(mixer)
+				});
+
+				const loader2 = new FBXLoader();
+
+				loader2.load("models/fbx/swim8.fbx", function (object2) {
+					mixer2 = new THREE.AnimationMixer(object2);
+
+					const action = mixer2.clipAction(object2.animations[0]);
+					action.play();
+
+					object2.traverse(function (child) {
+						if (child.isMesh) {
+
+							child.castShadow = true;
+							child.receiveShadow = true;
+						}
+					});
+
+					scene.add(object2);
+					object2.position.y = -25
+					positionX2 = object2.position;
+					mixers.push(mixer2)
+				});
+
+				const loader3 = new FBXLoader();
+
+				loader3.load("models/fbx/swim-chair.fbx", function (object3) {
+					mixer3 = new THREE.AnimationMixer(object3);
+
+					const action = mixer3.clipAction(object3.animations[0]);
+					action.play();
+
+					object3.traverse(function (child) {
+						if (child.isMesh) {
+
+							child.castShadow = true;
+							child.receiveShadow = true;
+						}
+					});
+
+					scene.add(object3);
+					object3.position.y = -50
+					positionX3 = object3.position;
+					mixers.push(mixer3)
+				});
+
+				window.addEventListener("resize", onWindowResize);
+
+				// water
+
+				const waterGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+
+				water = new Water(
+					waterGeometry,
+					{
+						textureWidth: 512,
+						textureHeight: 512,
+						waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
+
+							texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+						} ),
+						sunDirection: new THREE.Vector3(),
+						sunColor: 0xffffff,
+						waterColor: 0x001e0f,
+						distortionScale: 3.7,
+						fog: scene.fog !== undefined
+					}
+				);
+				
+				water.rotation.x = - Math.PI / 2;
+
+				scene.add( water );
+
+				// Skybox
+
+				const sky = new Sky();
+				sky.scale.setScalar( 10000 );
+				scene.add( sky );
+
+				const skyUniforms = sky.material.uniforms;
+
+				skyUniforms[ 'turbidity' ].value = 10;
+				skyUniforms[ 'rayleigh' ].value = 2;
+				skyUniforms[ 'mieCoefficient' ].value = 0.005;
+				skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+
+				const parameters = {
+					elevation: 2,
+					azimuth: 180
+				};
+
+				const pmremGenerator = new THREE.PMREMGenerator( renderer );
+
+				function updateSun() {
+
+					const phi = THREE.MathUtils.degToRad( 90 - parameters.elevation );
+					const theta = THREE.MathUtils.degToRad( parameters.azimuth );
+
+					sun.setFromSphericalCoords( 1, phi, theta );
+
+					sky.material.uniforms[ 'sunPosition' ].value.copy( sun );
+					water.material.uniforms[ 'sunDirection' ].value.copy( sun ).normalize();
+
+					scene.environment = pmremGenerator.fromScene( sky ).texture;
+
+				}
+
+				updateSun();
+
+				//
+
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.maxPolarAngle = Math.PI * 0.495;
+				controls.target.set( 0, 10, 0 );
+				controls.minDistance = 40.0;
+				controls.maxDistance = 200.0;
+				controls.update();
+
+				//
+
+				// stats
+				stats = new Stats();
+				container.appendChild(stats.dom);
+
+				// GUI
+
+				// const gui = new GUI();
+
+				// const folderSky = gui.addFolder( 'Sky' );
+				// folderSky.add( parameters, 'elevation', 0, 90, 0.1 ).onChange( updateSun );
+				// folderSky.add( parameters, 'azimuth', - 180, 180, 0.1 ).onChange( updateSun );
+				// folderSky.open();
+
+				// const waterUniforms = water.material.uniforms;
+
+				// const folderWater = gui.addFolder( 'Water' );
+				// folderWater.add( waterUniforms.distortionScale, 'value', 0, 8, 0.1 ).name( 'distortionScale' );
+				// folderWater.add( waterUniforms.size, 'value', 0.1, 10, 0.1 ).name( 'size' );
+				// folderWater.open();
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
+				// keyboard
+
+				const log = document.getElementById("canvas");
+				document.addEventListener("keydown", onKeyDown, false);
+
+				function getRand() {
+					return Math.random() * 2;
+				}
+
+				document.addEventListener("keypress", getRand);
+
+				function onKeyDown(event) { 
+					let keyCode = event.code;
+
+					if (keyCode == "ArrowLeft") {	
+						positionX.x -= xSpeed * getRand()
+						positionX2.x -= xSpeed * getRand()
+						positionX3.x -= xSpeed * getRand()
+					} else if (keyCode == "ArrowRight"){
+						positionX.x += xSpeed * getRand()
+						positionX2.x += xSpeed * getRand()
+						positionX3.x += xSpeed * getRand()
+					} else if (keyCode == "Space"){
+						positionX.set(0, -25, 0)
+						positionX2.set(0, -25, 0)
+						positionX3.set(0, -50, 0)
+					}
+				}
+			}
+			
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+
+			//
+
+			function animate() {
+				
+				requestAnimationFrame(animate);
+				//make ocean move
+				render()
+
+				const delta = clock.getDelta();
+
+				// if (mixer) mixer.update(delta);
+				for ( const mixer of mixers ) mixer.update( delta )
+
+				renderer.render(scene, camera);
+
+				stats.update();
+			}
+
+			function render() {
+
+			const time = performance.now() * 0.001;
+
+			water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+
+			renderer.render( scene, camera );
+
+			}
+		</script>
+	</body>
+</html>
