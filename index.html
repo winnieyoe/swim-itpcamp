@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Swimming with me</title>
+		<title>Swim with me</title>
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
@@ -121,6 +121,7 @@
 
 					scene.add(object);
 					object.position.y = -25
+					object.position.z = 30
 					positionX = object.position;
 					mixers.push(mixer)
 				});
@@ -143,6 +144,7 @@
 
 					scene.add(object2);
 					object2.position.y = -25
+					object2.position.z = -20
 					positionX2 = object2.position;
 					mixers.push(mixer2)
 				});
@@ -298,8 +300,8 @@
 						newCamera = 30 - positionX.x
 						camera.position.set( newCamera, 100, 260 );
 					} else if (keyCode == "Space"){
-						positionX.set(0, -25, 0)
-						positionX2.set(0, -25, 0)
+						positionX.set(0, -25, 30)
+						positionX2.set(0, -25, -20)
 						positionX3.set(0, -50, 0)
 						camera.position.set( 30, 100, 260 );
 					}
