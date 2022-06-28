@@ -281,19 +281,27 @@
 
 				function onKeyDown(event) { 
 					let keyCode = event.code;
+					let newCamera;
 
 					if (keyCode == "ArrowLeft") {	
 						positionX.x -= xSpeed * getRand()
 						positionX2.x -= xSpeed * getRand()
 						positionX3.x -= xSpeed * getRand()
+
+						newCamera = 30 + positionX.x
+						camera.position.set( newCamera, 100, 260 );
 					} else if (keyCode == "ArrowRight"){
 						positionX.x += xSpeed * getRand()
 						positionX2.x += xSpeed * getRand()
 						positionX3.x += xSpeed * getRand()
+
+						newCamera = 30 - positionX.x
+						camera.position.set( newCamera, 100, 260 );
 					} else if (keyCode == "Space"){
 						positionX.set(0, -25, 0)
 						positionX2.set(0, -25, 0)
 						positionX3.set(0, -50, 0)
+						camera.position.set( 30, 100, 260 );
 					}
 				}
 			}
@@ -326,11 +334,11 @@
 
 			function render() {
 
-			const time = performance.now() * 0.001;
+				const time = performance.now() * 0.001;
 
-			water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+				water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
 
-			renderer.render( scene, camera );
+				renderer.render( scene, camera );
 
 			}
 		</script>
