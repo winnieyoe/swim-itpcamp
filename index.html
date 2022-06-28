@@ -97,11 +97,13 @@
 				dirLight.shadow.camera.right = 120;
 				scene.add(dirLight);
 
+				// models
+				//counter
 				let positionX;
 				let positionX2;
 				let positionX3;
 
-				// models
+				let incrementSpeed;
 				
 				const loader = new FBXLoader();
 
@@ -146,6 +148,13 @@
 					object2.position.y = -25
 					object2.position.z = -20
 					positionX2 = object2.position;
+
+					// for (let i=0; i<1; i+=0.01){
+					// 	incrementSpeed = i
+					// 	positionX2.x -= xSpeed * incrementSpeed
+					// 	console.log(incrementSpeed, positionX2.x)
+					// }
+					
 					mixers.push(mixer2)
 				});
 
@@ -279,6 +288,17 @@
 					return Math.random() * 5;
 				}
 
+                function movePosition2(){
+					positionX2.x-=xSpeed * getRand()
+					positionX3.x -= xSpeed * getRand()
+
+				}
+
+				setInterval(()=>{
+					movePosition2()
+				}, 500)
+
+
 				document.addEventListener("keypress", getRand);
 
 				function onKeyDown(event) { 
@@ -287,8 +307,8 @@
 
 					if (keyCode == "ArrowLeft") {	
 						positionX.x -= xSpeed * getRand()
-						positionX2.x -= xSpeed * getRand()
-						positionX3.x -= xSpeed * getRand()
+						// positionX2.x -= xSpeed * getRand()
+						// positionX3.x -= xSpeed * getRand()
 
 						newCamera = 30 + positionX.x
 						camera.position.set( newCamera, 100, 260 );
