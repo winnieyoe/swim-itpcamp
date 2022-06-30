@@ -310,15 +310,17 @@
 						// positionX2.x -= xSpeed * getRand()
 						// positionX3.x -= xSpeed * getRand()
 
-						newCamera = 30 + positionX.x
+						newCamera = positionX.x
 						camera.position.set( newCamera, 100, 260 );
+
 					} else if (keyCode == "ArrowRight"){
 						positionX.x += xSpeed * getRand()
-						positionX2.x += xSpeed * getRand()
-						positionX3.x += xSpeed * getRand()
+						// positionX2.x += xSpeed * getRand()
+						// positionX3.x += xSpeed * getRand()
 
-						newCamera = 30 - positionX.x
+						newCamera = positionX.x
 						camera.position.set( newCamera, 100, 260 );
+
 					} else if (keyCode == "Space"){
 						positionX.set(0, -25, 30)
 						positionX2.set(0, -25, -20)
